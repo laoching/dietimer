@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Life Days Estimator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero">
+        <p class="eyebrow">Life Horizon</p>
+        <h1>건강 습관을 바탕으로 <br />남은 예상 수명을 일수로 확인해보세요.</h1>
+        <p class="hero-copy">
+          나이, 키, 몸무게, 흡연, 음주, 운동 습관을 반영해 BMI와 기대수명을 함께 추정합니다.
+          의료 진단이 아니라 생활 습관의 방향성을 가볍게 확인하는 용도예요.
+        </p>
+      </section>
+
+      <section class="app-grid">
+        <form class="panel form-panel" id="life-form">
+          <div class="section-title">
+            <h2>기본 정보</h2>
+            <p>숫자를 입력하면 결과가 즉시 업데이트됩니다.</p>
+          </div>
+
+          <div class="field-grid">
+            <label class="field">
+              <span>나이</span>
+              <input type="number" id="age" min="1" max="120" value="35" />
+            </label>
+
+            <label class="field">
+              <span>키(cm)</span>
+              <input type="number" id="height" min="80" max="250" step="0.1" value="170" />
+            </label>
+
+            <label class="field">
+              <span>몸무게(kg)</span>
+              <input type="number" id="weight" min="20" max="300" step="0.1" value="65" />
+            </label>
+
+            <label class="field field-wide">
+              <span>BMI 지수(자동 계산)</span>
+              <div class="computed-input" id="bmi">22.5</div>
+            </label>
+
+            <label class="field">
+              <span>흡연 여부</span>
+              <select id="smokes">
+                <option value="no">비흡연</option>
+                <option value="yes">흡연</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>하루 흡연량(개비)</span>
+              <input type="number" id="cigarettes" min="0" max="80" value="0" />
+            </label>
+
+            <label class="field">
+              <span>주간 음주 횟수</span>
+              <input type="number" id="drinking-frequency" min="0" max="14" value="1" />
+            </label>
+
+            <label class="field">
+              <span>주종</span>
+              <select id="alcohol-type">
+                <option value="beer">맥주(4.5도)</option>
+                <option value="soju">소주(13도)</option>
+                <option value="wine">와인(12도)</option>
+                <option value="whiskey">위스키/증류주(40도)</option>
+                <option value="mixed">혼합/기타(7도)</option>
+              </select>
+              <p class="field-note" id="alcohol-type-hint" title="">표준 도수 예시를 불러오는 중입니다.</p>
+            </label>
+
+            <label class="field">
+              <span>도수(표준값, %)</span>
+              <div class="computed-input" id="alcohol-proof">13</div>
+              <p class="field-note proof-note">
+                주종 선택 시 대표 제품 예시 기준 표준 도수가 자동 반영됩니다.
+              </p>
+            </label>
+
+            <label class="field">
+              <span>1회 음주량(ml)</span>
+              <input type="number" id="alcohol-volume" min="0" max="3000" value="360" />
+            </label>
+
+            <label class="field">
+              <span>주간 운동 횟수</span>
+              <input type="number" id="exercise-frequency" min="0" max="14" value="3" />
+            </label>
+
+            <label class="field">
+              <span>운동 강도</span>
+              <select id="exercise-intensity">
+                <option value="light">가벼움</option>
+                <option value="moderate" selected>중간</option>
+                <option value="high">높음</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>운동 유형</span>
+              <select id="exercise-type">
+                <option value="none">안 함</option>
+                <option value="cardio">유산소</option>
+                <option value="weights">웨이트</option>
+                <option value="mixed" selected>혼합</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>1회 운동 시간(분)</span>
+              <input type="number" id="exercise-duration" min="0" max="300" value="50" />
+            </label>
+          </div>
+        </form>
+
+        <section class="panel result-panel" aria-live="polite">
+          <div class="result-top">
+            <p class="result-label">예상 남은 수명</p>
+            <div class="days-display">
+              <strong id="days-left">0</strong>
+              <span>일</span>
+            </div>
+            <p class="life-expectancy">
+              추정 기대수명: <strong id="estimated-life">0</strong>세
+            </p>
+          </div>
+
+          <div class="score-strip">
+            <div>
+              <span class="mini-label">건강 점수</span>
+              <strong id="health-score">0 / 100</strong>
+            </div>
+            <div>
+              <span class="mini-label">오늘 기준 나이</span>
+              <strong id="current-age">0세</strong>
+            </div>
+          </div>
+
+          <div class="insight-block">
+            <h3>영향 요인</h3>
+            <ul id="insights"></ul>
+          </div>
+
+          <div class="insight-block">
+            <h3>계산 방식</h3>
+            <p id="formula-summary"></p>
+          </div>
+
+          <p class="disclaimer">
+            이 결과는 통계적 경향을 단순화한 데모용 추정치입니다. 실제 수명은 질환,
+            유전, 정신건강, 수면, 식습관, 의료 접근성 등 훨씬 많은 요소에 영향을 받습니다.
+          </p>
+        </section>
+      </section>
+    </main>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
