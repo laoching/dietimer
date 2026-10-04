@@ -25,36 +25,38 @@ const outputs = {
   formulaSummary: document.getElementById("formula-summary"),
 };
 
+const cigarettesField = document.getElementById("cigarettes-field");
+
 const alcoholProfiles = {
   beer: {
     factor: 0.95,
     proof: 4.5,
     label: "맥주",
-    hint: "맥주 4.5도(카스 프레시 기준 예시)",
+    hint: "맥주는 일반 라거 기준 4.5도로 계산해요.",
   },
   soju: {
     factor: 1.1,
     proof: 13,
     label: "소주",
-    hint: "소주 13도(참이슬 후레쉬 기준 예시)",
+    hint: "소주는 일반 희석식 소주 기준 13도로 계산해요.",
   },
   wine: {
     factor: 0.85,
     proof: 12,
     label: "와인",
-    hint: "와인 12도(일반적인 레드 와인 기준 예시)",
+    hint: "와인은 일반 레드 와인 기준 12도로 계산해요.",
   },
   whiskey: {
     factor: 1.15,
     proof: 40,
-    label: "위스키/증류주",
-    hint: "위스키/증류주 40도(잭 다니엘스 기준 예시)",
+    label: "위스키·증류주",
+    hint: "위스키·증류주는 일반 위스키 기준 40도로 계산해요.",
   },
   mixed: {
     factor: 1,
     proof: 7,
-    label: "혼합주/기타",
-    hint: "혼합주/기타 7도(캔 하이볼류 기준 예시)",
+    label: "혼합주·기타",
+    hint: "혼합주·기타는 캔 하이볼 기준 7도로 계산해요.",
   },
 };
 
@@ -110,17 +112,17 @@ function calculateLifeExpectancy(data) {
   const bmiPenalty = bmiGap <= 2 ? 0 : Math.min(10, (bmiGap - 2) * 0.9);
   expectancy -= bmiPenalty;
   if (bmiPenalty > 0) {
-    insights.push(`BMI가 이상 범위(22 전후)에서 벗어나 약 ${bmiPenalty.toFixed(1)}년이 차감됐어요.`);
+    insights.push(`BMI가 권장 범위(22 전후)와 차이가 있어 약 ${bmiPenalty.toFixed(1)}년 낮게 반영했어요.`);
   } else {
-    insights.push("BMI가 비교적 안정적인 범위라 체중 요인 차감이 거의 없어요.");
+    insights.push("BMI가 권장 범위에 가까워 체중 요인은 거의 반영되지 않았어요.");
   }
 
   if (data.smokes === "yes" && data.cigarettes > 0) {
     const smokingPenalty = clamp(data.cigarettes * 0.22, 0, 15);
     expectancy -= smokingPenalty;
-    insights.push(`흡연량(${data.cigarettes}개비/일)으로 약 ${smokingPenalty.toFixed(1)}년이 차감됐어요.`);
+    insights.push(`하루 ${data.cigarettes}개비 흡연을 반영해 약 ${smokingPenalty.toFixed(1)}년 낮게 계산했어요.`);
   } else {
-    insights.push("비흡연 상태로 계산되어 흡연 관련 차감이 없어요.");
+    insights.push("비흡연으로 계산해 흡연 요인은 반영되지 않았어요.");
   }
 
   const pureAlcoholMlPerWeek =
@@ -133,9 +135,9 @@ function calculateLifeExpectancy(data) {
     : clamp((pureAlcoholMlPerWeek - 120) / 120, 0, 8);
   expectancy -= alcoholPenalty;
   if (alcoholPenalty > 0) {
-    insights.push(`음주 습관으로 약 ${alcoholPenalty.toFixed(1)}년이 차감됐어요.`);
+    insights.push(`음주 습관을 반영해 약 ${alcoholPenalty.toFixed(1)}년 낮게 계산했어요.`);
   } else {
-    insights.push("음주량이 낮거나 보통 수준이라 큰 차감 없이 반영됐어요.");
+    insights.push("음주량이 적은 편이라 음주 요인은 거의 반영되지 않았어요.");
   }
 
   const weeklyExerciseMinutes = data.exerciseFrequency * data.exerciseDuration;
@@ -151,17 +153,17 @@ function calculateLifeExpectancy(data) {
         );
   expectancy += exerciseBonus;
   if (exerciseBonus > 0) {
-    insights.push(`운동 습관 덕분에 약 ${exerciseBonus.toFixed(1)}년이 가산됐어요.`);
+    insights.push(`꾸준한 운동 습관을 반영해 약 ${exerciseBonus.toFixed(1)}년 높게 계산했어요.`);
   } else {
-    insights.push("운동 정보가 거의 없어 운동 관련 가산점은 반영되지 않았어요.");
+    insights.push("운동 기록이 없어 운동 요인은 반영되지 않았어요.");
   }
 
   const ageAdjustment = data.age >= 75 ? -2 : data.age >= 60 ? -1 : data.age < 30 ? 1 : 0;
   expectancy += ageAdjustment;
   if (ageAdjustment > 0) {
-    insights.push("비교적 젊은 연령대라 회복력 측면의 소폭 가산을 적용했어요.");
+    insights.push("연령대를 고려해 소폭 높게 보정했어요.");
   } else if (ageAdjustment < 0) {
-    insights.push("고연령 구간 보정으로 기대수명을 소폭 낮춰 계산했어요.");
+    insights.push("연령대를 고려해 소폭 낮게 보정했어요.");
   }
 
   expectancy = clamp(expectancy, 45, 102);
@@ -180,7 +182,7 @@ function buildSummary(data, metrics) {
       ? `주 ${data.exerciseFrequency}회 ${exerciseTypeLabel[data.exerciseType]}, ${exerciseIntensityLabel[data.exerciseIntensity]} 강도, 회당 ${data.exerciseDuration}분`
       : "운동 없음";
 
-  return `기본 기대수명 83세를 기준으로 키 ${data.height}cm, 몸무게 ${data.weight}kg에서 계산된 BMI(${data.bmi.toFixed(1)}), ${smokeText}, ${drinkText}, ${exerciseText}를 점수화했습니다. 순수 알코올 섭취량은 주 ${metrics.pureAlcoholMlPerWeek.toFixed(0)}ml, 총 운동 시간은 주 ${metrics.weeklyExerciseMinutes.toFixed(0)}분으로 환산해 보정했어요.`;
+  return `평균 기대수명 83세를 기준으로 키 ${data.height}cm, 몸무게 ${data.weight}kg에서 계산된 BMI(${data.bmi.toFixed(1)}), ${smokeText}, ${drinkText}, ${exerciseText}를 반영했어요. 순수 알코올 섭취량은 주 ${metrics.pureAlcoholMlPerWeek.toFixed(0)}ml, 총 운동 시간은 주 ${metrics.weeklyExerciseMinutes.toFixed(0)}분으로 환산해 보정했어요.`;
 }
 
 function calculateHealthScore(data, expectancy) {
@@ -235,7 +237,6 @@ function render() {
   outputs.bmi.textContent = data.bmi.toFixed(1);
   fields.alcoholProof.textContent = data.alcoholProof.toFixed(1).replace(".0", "");
   outputs.alcoholTypeHint.textContent = alcoholHint;
-  outputs.alcoholTypeHint.title = alcoholHint;
   outputs.daysLeft.textContent = daysLeft.toLocaleString("ko-KR");
   outputs.estimatedLife.textContent = metrics.expectancy.toFixed(1);
   outputs.healthScore.textContent = `${healthScore} / 100`;
@@ -249,7 +250,7 @@ function render() {
     outputs.insights.appendChild(item);
   });
 
-  fields.cigarettes.disabled = data.smokes !== "yes";
+  cigarettesField.hidden = data.smokes !== "yes";
   if (data.smokes !== "yes") {
     fields.cigarettes.value = "0";
   }
