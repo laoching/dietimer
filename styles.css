@@ -452,6 +452,36 @@ input[aria-invalid] {
   color: var(--text);
 }
 
+.button-tonal {
+  width: 100%;
+  height: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.button-tonal[hidden],
+.reminder[hidden],
+.reminder-status[hidden] {
+  display: none;
+}
+
+.button-tonal:disabled {
+  opacity: 0.5;
+}
+
+.reminder-status {
+  margin: 0;
+  color: var(--text-sub);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 .button-primary:active,
 .button-secondary:active {
   opacity: 0.85;

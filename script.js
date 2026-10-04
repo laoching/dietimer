@@ -1,4 +1,4 @@
-import { Analytics, Review, Storage } from "@apps-in-toss/web-framework";
+import { Analytics, Notification, Review, Storage } from "@apps-in-toss/web-framework";
 
 const fields = {
   age: document.getElementById("age"),
@@ -44,11 +44,17 @@ const formError = document.getElementById("form-error");
 const result = document.getElementById("result");
 const resultCard = document.getElementById("result-card");
 const editButton = document.getElementById("edit-button");
+const reminderCard = document.getElementById("reminder-card");
+const reminderButton = document.getElementById("reminder-button");
+const reminderStatus = document.getElementById("reminder-status");
 const cigarettesField = document.getElementById("cigarettes-field");
 const drinkDetails = document.querySelectorAll("[data-drink-detail]");
 const exerciseDetails = document.querySelectorAll("[data-exercise-detail]");
 
 const STORAGE_KEY = "dietimer:last";
+const REMINDER_STORAGE_KEY = "dietimer:reminder";
+// 콘솔 스마트발송 템플릿 코드예요. 비어 있으면 알림 카드를 보여주지 않아요.
+const NOTIFICATION_TEMPLATE_CODE = "";
 const BASE_EXPECTANCY = 83;
 
 const alcoholProfiles = {
@@ -120,6 +126,7 @@ const state = {
   previous: null,
   completions: 0,
   reviewRequested: false,
+  reminderAgreed: false,
 };
 
 function clamp(value, min, max) {
@@ -392,13 +399,13 @@ async function withTimeout(promise, ms = 1000) {
   ]);
 }
 
-async function loadSaved() {
+async function loadSaved(key = STORAGE_KEY) {
   try {
-    const raw = await withTimeout(Storage.getItem(STORAGE_KEY));
+    const raw = await withTimeout(Storage.getItem(key));
     return raw ? JSON.parse(raw) : null;
   } catch {
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
+      const raw = window.localStorage.getItem(key);
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -406,13 +413,13 @@ async function loadSaved() {
   }
 }
 
-async function save(value) {
+async function save(value, key = STORAGE_KEY) {
   const raw = JSON.stringify(value);
   try {
-    await withTimeout(Storage.setItem(STORAGE_KEY, raw));
+    await withTimeout(Storage.setItem(key, raw));
   } catch {
     try {
-      window.localStorage.setItem(STORAGE_KEY, raw);
+      window.localStorage.setItem(key, raw);
     } catch {
       // 저장하지 못해도 계산 결과는 그대로 보여줘요.
     }
@@ -447,12 +454,74 @@ async function maybeRequestReview() {
   }
 }
 
+function isReminderSupported() {
+  try {
+    return NOTIFICATION_TEMPLATE_CODE !== "" && Notification.requestAgreement.isSupported();
+  } catch {
+    return false;
+  }
+}
+
+function renderReminder() {
+  if (!isReminderSupported()) {
+    reminderCard.hidden = true;
+    return;
+  }
+
+  reminderCard.hidden = false;
+  reminderButton.hidden = state.reminderAgreed;
+  reminderStatus.hidden = !state.reminderAgreed;
+  reminderStatus.textContent = "매주 알림을 받기로 했어요. 알림이 오면 이번 주 습관으로 다시 계산해 보세요.";
+}
+
+// 사용자가 알림 받기 버튼을 직접 눌렀을 때만 동의 화면을 띄워요.
+function requestReminder() {
+  reminderButton.disabled = true;
+  let cleanup = () => {};
+
+  const finish = () => {
+    reminderButton.disabled = false;
+    cleanup();
+  };
+
+  try {
+    cleanup = Notification.requestAgreement({
+      options: { templateCode: NOTIFICATION_TEMPLATE_CODE },
+      onEvent: ({ type }) => {
+        state.reminderAgreed = type !== "agreementRejected";
+        if (state.reminderAgreed) {
+          save({ agreed: true, agreedAt: Date.now() }, REMINDER_STORAGE_KEY);
+        }
+        try {
+          Analytics.log({
+            log_name: "reminder_agreement",
+            log_type: "event",
+            params: { result: type },
+          }).catch(() => {});
+        } catch {
+          // 로그 전송 실패는 무시해요.
+        }
+        renderReminder();
+        finish();
+      },
+      onError: () => {
+        reminderStatus.textContent = "알림 설정을 열지 못했어요. 잠시 후 다시 시도해 주세요.";
+        reminderStatus.hidden = false;
+        finish();
+      },
+    });
+  } catch {
+    finish();
+  }
+}
+
 function showResult({ restored = false } = {}) {
   const summary = renderResult();
   state.hasResult = true;
   result.hidden = false;
   outputs.resultDone.textContent = restored ? "지난번 입력으로 계산한 결과예요" : "계산이 완료됐어요";
   form.querySelector("#submit-button").textContent = "다시 계산하기";
+  renderReminder();
   return summary;
 }
 
@@ -510,6 +579,8 @@ Object.values(fields).forEach((field) => {
 
 form.addEventListener("submit", handleSubmit);
 
+reminderButton.addEventListener("click", requestReminder);
+
 editButton.addEventListener("click", () => {
   form.scrollIntoView({ behavior: "smooth", block: "start" });
   fields.age.focus({ preventScroll: true });
@@ -517,6 +588,9 @@ editButton.addEventListener("click", () => {
 
 async function init() {
   renderInputs();
+
+  const reminder = await loadSaved(REMINDER_STORAGE_KEY);
+  state.reminderAgreed = Boolean(reminder?.agreed);
 
   const saved = await loadSaved();
   if (!saved?.inputs) {
