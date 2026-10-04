@@ -15,41 +15,19 @@
       <header class="header">
         <h1>생활습관으로 보는<br />나의 기대수명</h1>
         <p class="header-sub">
-          키, 몸무게, 흡연, 음주, 운동 습관을 바탕으로 기대수명을 가볍게 계산해봐요.
+          아래 4단계를 순서대로 입력하고 계산하기를 누르면 기대수명과 생활습관 점수를 알려드려요.
         </p>
       </header>
 
-      <section class="card result-card" aria-live="polite">
-        <p class="result-label">생활습관 기준 추정 기대수명</p>
-        <p class="result-main"><strong id="estimated-life">0</strong>세</p>
-        <p class="result-sub">
-          지금 나이 기준으로 약 <strong id="days-left">0</strong>일이에요
-        </p>
-
-        <div class="stat-row">
-          <div class="stat">
-            <span class="stat-label">생활습관 점수</span>
-            <strong id="health-score">0 / 100</strong>
-          </div>
-          <div class="stat">
-            <span class="stat-label">현재 나이</span>
-            <strong id="current-age">0세</strong>
-          </div>
-        </div>
-
-        <p class="notice">
-          의료 진단이 아닌 참고용 추정치예요. 건강이 걱정된다면 전문의와 상담해 주세요.
-        </p>
-      </section>
-
-      <form class="form" id="life-form" onsubmit="return false">
+      <form class="form" id="life-form" novalidate>
         <section class="card">
-          <h2>기본 정보</h2>
+          <h2><span class="step">1</span>기본 정보</h2>
+          <p class="card-desc">나이, 키, 몸무게를 입력해 주세요. BMI는 자동으로 계산돼요.</p>
           <div class="field-grid">
             <label class="field">
               <span>나이</span>
               <div class="input-wrap">
-                <input type="number" inputmode="numeric" id="age" min="1" max="120" value="35" />
+                <input type="number" inputmode="numeric" id="age" min="1" max="120" placeholder="예) 35" required />
                 <em>세</em>
               </div>
             </label>
@@ -57,7 +35,7 @@
             <label class="field">
               <span>키</span>
               <div class="input-wrap">
-                <input type="number" inputmode="decimal" id="height" min="80" max="250" step="0.1" value="170" />
+                <input type="number" inputmode="decimal" id="height" min="80" max="250" step="0.1" placeholder="예) 170" required />
                 <em>cm</em>
               </div>
             </label>
@@ -65,20 +43,21 @@
             <label class="field">
               <span>몸무게</span>
               <div class="input-wrap">
-                <input type="number" inputmode="decimal" id="weight" min="20" max="300" step="0.1" value="65" />
+                <input type="number" inputmode="decimal" id="weight" min="20" max="300" step="0.1" placeholder="예) 65" required />
                 <em>kg</em>
               </div>
             </label>
 
             <div class="field">
               <span>BMI (자동 계산)</span>
-              <div class="computed" id="bmi">22.5</div>
+              <div class="computed" id="bmi">-</div>
             </div>
           </div>
         </section>
 
         <section class="card">
-          <h2>흡연</h2>
+          <h2><span class="step">2</span>흡연</h2>
+          <p class="card-desc">흡연한다면 하루 평균 흡연량을 알려주세요.</p>
           <div class="field-grid">
             <label class="field">
               <span>흡연 여부</span>
@@ -88,10 +67,10 @@
               </select>
             </label>
 
-            <label class="field" id="cigarettes-field">
+            <label class="field" id="cigarettes-field" hidden>
               <span>하루 흡연량</span>
               <div class="input-wrap">
-                <input type="number" inputmode="numeric" id="cigarettes" min="0" max="80" value="0" />
+                <input type="number" inputmode="numeric" id="cigarettes" min="0" max="80" value="10" />
                 <em>개비</em>
               </div>
             </label>
@@ -99,17 +78,18 @@
         </section>
 
         <section class="card">
-          <h2>음주</h2>
+          <h2><span class="step">3</span>음주</h2>
+          <p class="card-desc">마시지 않는다면 0회로 두고 넘어가세요.</p>
           <div class="field-grid">
             <label class="field">
               <span>일주일 음주 횟수</span>
               <div class="input-wrap">
-                <input type="number" inputmode="numeric" id="drinking-frequency" min="0" max="14" value="1" />
+                <input type="number" inputmode="numeric" id="drinking-frequency" min="0" max="14" value="0" />
                 <em>회</em>
               </div>
             </label>
 
-            <label class="field">
+            <label class="field" data-drink-detail hidden>
               <span>1회 음주량</span>
               <div class="input-wrap">
                 <input type="number" inputmode="numeric" id="alcohol-volume" min="0" max="3000" value="360" />
@@ -117,45 +97,46 @@
               </div>
             </label>
 
-            <label class="field">
+            <label class="field" data-drink-detail hidden>
               <span>주종</span>
               <select id="alcohol-type">
                 <option value="beer">맥주</option>
-                <option value="soju">소주</option>
+                <option value="soju" selected>소주</option>
                 <option value="wine">와인</option>
                 <option value="whiskey">위스키·증류주</option>
                 <option value="mixed">혼합주·기타</option>
               </select>
             </label>
 
-            <div class="field">
+            <div class="field" data-drink-detail hidden>
               <span>도수 (자동 적용)</span>
               <div class="computed"><span id="alcohol-proof">13</span>%</div>
             </div>
           </div>
-          <p class="field-note" id="alcohol-type-hint"></p>
+          <p class="field-note" id="alcohol-type-hint" data-drink-detail hidden></p>
         </section>
 
         <section class="card">
-          <h2>운동</h2>
+          <h2><span class="step">4</span>운동</h2>
+          <p class="card-desc">운동하지 않는다면 0회로 두고 넘어가세요.</p>
           <div class="field-grid">
             <label class="field">
               <span>일주일 운동 횟수</span>
               <div class="input-wrap">
-                <input type="number" inputmode="numeric" id="exercise-frequency" min="0" max="14" value="3" />
+                <input type="number" inputmode="numeric" id="exercise-frequency" min="0" max="14" value="0" />
                 <em>회</em>
               </div>
             </label>
 
-            <label class="field">
+            <label class="field" data-exercise-detail hidden>
               <span>1회 운동 시간</span>
               <div class="input-wrap">
-                <input type="number" inputmode="numeric" id="exercise-duration" min="0" max="300" value="50" />
+                <input type="number" inputmode="numeric" id="exercise-duration" min="0" max="300" value="30" />
                 <em>분</em>
               </div>
             </label>
 
-            <label class="field">
+            <label class="field" data-exercise-detail hidden>
               <span>운동 강도</span>
               <select id="exercise-intensity">
                 <option value="light">가벼움</option>
@@ -164,10 +145,9 @@
               </select>
             </label>
 
-            <label class="field">
+            <label class="field" data-exercise-detail hidden>
               <span>운동 유형</span>
               <select id="exercise-type">
-                <option value="none">안 함</option>
                 <option value="cardio">유산소</option>
                 <option value="weights">웨이트</option>
                 <option value="mixed" selected>혼합</option>
@@ -175,22 +155,60 @@
             </label>
           </div>
         </section>
+
+        <p class="form-error" id="form-error" role="alert" hidden></p>
+
+        <div class="cta">
+          <button type="submit" class="button-primary" id="submit-button">기대수명 계산하기</button>
+        </div>
       </form>
 
-      <section class="card">
-        <h2>결과에 반영된 요인</h2>
-        <ul class="insights" id="insights"></ul>
-      </section>
+      <div class="result" id="result" hidden>
+        <section class="card result-card" aria-live="polite" tabindex="-1" id="result-card">
+          <p class="result-done" id="result-done">계산이 완료됐어요</p>
+          <p class="result-label">생활습관 기준 추정 기대수명</p>
+          <p class="result-main"><strong id="estimated-life">0</strong>세</p>
+          <p class="result-compare" id="result-compare"></p>
+          <p class="result-sub">
+            지금 <strong id="current-age">0</strong>세 기준으로 남은 기대 시간은 약
+            <strong id="days-left">0</strong>일이에요
+          </p>
+          <p class="result-history" id="result-history" hidden></p>
 
-      <section class="card">
-        <h2>계산 방식</h2>
-        <p class="body-text" id="formula-summary"></p>
-      </section>
+          <div class="score">
+            <div class="score-head">
+              <span class="stat-label">생활습관 점수</span>
+              <span class="score-grade" id="score-grade"></span>
+            </div>
+            <strong class="score-value"><span id="health-score">0</span> / 100</strong>
+            <div class="score-bar"><div class="score-bar-fill" id="score-bar"></div></div>
+            <p class="score-desc" id="score-desc"></p>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>결과에 반영된 요인</h2>
+          <p class="card-desc">평균 기대수명 83세에서 아래 요인만큼 더하거나 빼서 계산했어요.</p>
+          <ul class="insights" id="insights"></ul>
+        </section>
+
+        <section class="card">
+          <h2>계산 방식</h2>
+          <p class="body-text" id="formula-summary"></p>
+        </section>
+
+        <p class="notice">
+          의료 진단이 아닌 참고용 추정치예요. 건강이 걱정된다면 전문의와 상담해 주세요.
+        </p>
+
+        <button type="button" class="button-secondary" id="edit-button">입력 수정하기</button>
+      </div>
 
       <p class="disclaimer">
         이 결과는 통계적 경향을 단순화한 참고용 추정치이며, 의학적 진단이나 예측을 대신하지
         않아요. 실제 건강 상태는 질환, 유전, 수면, 식습관, 정신건강, 의료 접근성 등 훨씬 많은
-        요소의 영향을 받아요. 입력한 정보는 기기 밖으로 전송되거나 저장되지 않아요.
+        요소의 영향을 받아요. 입력한 정보는 다음 방문 때 이어볼 수 있도록 이 기기에만 저장되고,
+        외부로 전송되지 않아요.
       </p>
     </main>
 
